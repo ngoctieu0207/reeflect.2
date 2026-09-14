@@ -5,6 +5,10 @@ let rock4Img;
 let rock5Img;
 let rock6Img;
 let shieldDomeImg;
+// dedicated rock images for the win/lose end screen — spec 1 a2's original
+// rock PNGs (different files than this project's own rock1-6.png), kept
+// separate so a2's rock coordinates render correctly there
+let endRock1Img, endRock2Img, endRock3Img, endRock4Img, endRock5Img, endRock6Img;
 
 let trashBottleImg1, trashBottleImg2, trashBottleImg3;
 let trashMilkBoxImg1, trashMilkBoxImg2, trashMilkBoxImg3;
@@ -322,6 +326,13 @@ function preload() {
   rock5Img = loadImage("assets/images/rock5.png");
   rock6Img = loadImage("assets/images/rock6.png");
   shieldDomeImg = loadImage("assets/images/shield-dome.svg");
+
+  endRock1Img = loadImage("assets/images/end-rock1.png");
+  endRock2Img = loadImage("assets/images/end-rock2.png");
+  endRock3Img = loadImage("assets/images/end-rock3.png");
+  endRock4Img = loadImage("assets/images/end-rock4.png");
+  endRock5Img = loadImage("assets/images/end-rock5.png");
+  endRock6Img = loadImage("assets/images/end-rock6.png");
 
   // SVG, not PNG — the PNG export from Figma baked in that frame's own
   // (dark) background fill, since these litter pieces are grouped inside
@@ -1312,10 +1323,22 @@ function drawReefSavedBanner() {
 // lazily inside drawEndScreenReef(), since LAYOUT itself isn't defined yet
 // at this point in the file). Only coral/seaweed (hand-coded vector shapes,
 // unchanged since a2) reuse a2's numbers directly.
-const END_ROCK_DRAW_FNS = [drawRock1, drawRock2, drawRock3, drawRock4, drawRock5, drawRock6];
-function getEndRockXys() {
-  return [LAYOUT.rock1, LAYOUT.rock2, LAYOUT.rock3, LAYOUT.rock4, LAYOUT.rock5, LAYOUT.rock6[0]];
-}
+function drawEndRock1(x, y, s = 1) { push(); translate(x, y); scale(s); image(endRock1Img, 0, 0); pop(); }
+function drawEndRock2(x, y, s = 1) { push(); translate(x, y); scale(s); image(endRock2Img, 0, 0); pop(); }
+function drawEndRock3(x, y, s = 1) { push(); translate(x, y); scale(s); image(endRock3Img, 0, 0); pop(); }
+function drawEndRock4(x, y, s = 1) { push(); translate(x, y); scale(s); image(endRock4Img, 0, 0); pop(); }
+function drawEndRock5(x, y, s = 1) { push(); translate(x, y); scale(s); image(endRock5Img, 0, 0); pop(); }
+function drawEndRock6(x, y, s = 1) { push(); translate(x, y); scale(s); image(endRock6Img, 0, 0); pop(); }
+
+const END_ROCK_DRAW_FNS = [drawEndRock1, drawEndRock2, drawEndRock3, drawEndRock4, drawEndRock5, drawEndRock6];
+const END_ROCK_XYS = [
+  [0, 280, 1],    // drawEndRock1
+  [1150, 300, 1], // drawEndRock2
+  [1225, 440, 1], // drawEndRock3
+  [1180, 710, 1], // drawEndRock4
+  [0, 480, 1],    // drawEndRock5
+  [0, 800, 1],    // drawEndRock6
+];
 
 const END_CORAL_DRAW_FNS = [drawCoral1, drawCoral2, drawCoral3, drawCoral4, drawCoral5, drawCoral6,
   drawCoral7, drawCoral8, drawCoral9, drawCoral10, drawCoral11, drawCoral12];
@@ -1356,9 +1379,8 @@ function buildEndScreenPlan() {
 // frozenTime: null = live animation (a win), any number = frozen at that
 // pose (a loss uses 0)
 function drawEndScreenReef(frozenTime) {
-  const endRockXys = getEndRockXys();
   END_ROCK_DRAW_FNS.forEach((fn, i) => {
-    const [x, y, s] = endRockXys[i];
+    const [x, y, s] = END_ROCK_XYS[i];
     fn(x, y, s);
   });
   endSeaweedPlan.forEach((p, i) => {
