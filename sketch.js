@@ -1172,11 +1172,21 @@ function draw() {
   }
   const gameOver = reefDead || gameWon;
 
-  // once the win/lose banner has had its ~5s on screen, replace the live
+  // once the win/lose banner has had its ~3s on screen, replace the live
   // reef entirely with the dedicated end screen (see drawEndScreen()) —
   // everything below this only ever runs before that swap happens
   if (gameOver && millis() - endScreenShownAt >= END_SCREEN_BANNER_MS) {
+    if (endScreenTransitionStart === null) endScreenTransitionStart = millis();
     drawEndScreen(gameWon);
+    // a quick fade-in from black on the very first frames of the swap, so
+    // it doesn't just hard-cut from the live scene to this one
+    const fadeElapsed = millis() - endScreenTransitionStart;
+    if (fadeElapsed < END_SCREEN_FADE_MS) {
+      const fadeAlpha = 255 * (1 - fadeElapsed / END_SCREEN_FADE_MS);
+      noStroke();
+      fill(0, 0, 0, fadeAlpha);
+      rect(0, 0, width, height);
+    }
     return;
   }
 
@@ -1396,14 +1406,138 @@ function drawEndScreenReef(frozenTime) {
   });
 }
 
+// a handful of fish swimming lazily back and forth, each breathing out a
+// small bubble from its mouth every so often — decorative ambiance for the
+// win screen only (see drawEndScreen()). Rebuilt fresh alongside the rest of
+// the end screen's reef every round, see randomizeCorals().
+let endScreenFish = [];
+let endScreenBubbles = [];
+
+function initEndScreenFish() {
+  const fns = [drawGoodFish1, drawGoodFish2, drawGoodFish3];
+  endScreenFish = [];
+  for (let i = 0; i < 4; i++) {
+    endScreenFish.push({
+      fn: fns[i % fns.length],
+      x: random(200, 1720),
+      baseY: random(250, 820), // swims along this horizontal line, just bobbing gently — no vertical drift
+      y: 0,
+      s: random(0.8, 1.3),
+      speed: random(40, 90),
+      dir: random() < 0.5 ? 1 : -1,
+      bobAmp: random(6, 16),
+      bobSpeed: random(0.4, 1),
+      phase: random(TWO_PI),
+      nextTurnAt: millis() + random(3000, 7000),
+      nextBubbleAt: millis() + random(300, 1500),
+    });
+  }
+}
+
+function initEndScreenBubbles() {
+  endScreenBubbles = [];
+}
+
+// once a fish swims fully off one side of the canvas, bring it back in from
+// the other (or the same) side on a fresh horizontal line, so it never just
+// vanishes for good
+function respawnEndScreenFish(f) {
+  const fromLeft = random() < 0.5;
+  f.x = fromLeft ? -80 : 2000;
+  f.dir = fromLeft ? 1 : -1;
+  f.baseY = random(150, 930);
+}
+
+// a bubble released from f's mouth, drifting off in the direction f is
+// already facing — its start position/size scale with the fish's own size
+function spawnEndScreenBubble(f) {
+  endScreenBubbles.push({
+    x: f.x + f.dir * 12 * f.s,
+    y: f.y + 16 * f.s,
+    r: random(5, 9) * f.s,
+    speed: random(35, 60),
+    wobbleAmp: random(3, 8),
+    wobbleSpeed: random(0.5, 1.2),
+    phase: random(TWO_PI),
+  });
+}
+
+function updateAndDrawEndScreenFish() {
+  const now = millis();
+  const dt = deltaTime / 1000;
+  endScreenFish.forEach((f) => {
+    // every few seconds it turns around and swims back the other way,
+    // instead of committing to one direction for its whole life
+    if (now > f.nextTurnAt) {
+      f.dir *= -1;
+      f.nextTurnAt = now + random(3000, 7000);
+    }
+    f.x += f.dir * f.speed * dt;
+    f.y = f.baseY + sin(now * 0.001 * f.bobSpeed + f.phase) * f.bobAmp;
+
+    // let it swim fully off-screen, then bring it back in
+    if (f.x < -100 || f.x > 2020) respawnEndScreenFish(f);
+
+    if (now > f.nextBubbleAt) {
+      spawnEndScreenBubble(f);
+      f.nextBubbleAt = now + random(900, 1800);
+    }
+
+    push();
+    translate(f.x, f.y);
+    // the fish's own art has its nose at the low-x (head) end and its tail
+    // fanning out toward high x — i.e. it faces LEFT by default — so
+    // swimming rightward (dir 1) needs a horizontal flip to face that way
+    if (f.dir === 1) scale(-1, 1);
+    f.fn(0, 0, f.s);
+    pop();
+  });
+}
+
+// same look as the live game's click-spawned bubbles (see
+// updateAndDrawBubbles) — faint blue body, thin rim, two highlight glints —
+// just smaller and with no debris-swallowing, since nothing falls here
+function updateAndDrawEndScreenBubbles() {
+  const now = millis();
+  for (let i = endScreenBubbles.length - 1; i >= 0; i--) {
+    const b = endScreenBubbles[i];
+    b.y -= b.speed * (deltaTime / 1000);
+    const x = b.x + sin(now * 0.001 * b.wobbleSpeed + b.phase) * b.wobbleAmp;
+
+    const squish = 1 + sin(now * 0.006 + b.phase) * 0.05;
+    const bw = b.r * 2 * squish;
+    const bh = b.r * 2 * (2 - squish);
+
+    noStroke();
+    fill(210, 245, 255, 40);
+    ellipse(x, b.y, bw, bh);
+    noFill();
+    stroke(255, 255, 255, 130);
+    strokeWeight(1.4);
+    ellipse(x, b.y, bw, bh);
+    noStroke();
+    fill(255, 255, 255, 175);
+    ellipse(x - b.r * 0.32, b.y - b.r * 0.35, b.r * 0.5, b.r * 0.38);
+    fill(255, 255, 255, 90);
+    ellipse(x + b.r * 0.25, b.y + b.r * 0.3, b.r * 0.22, b.r * 0.18);
+
+    if (b.y < -20) endScreenBubbles.splice(i, 1);
+  }
+}
+
 function drawEndScreen(won) {
   document.getElementById("end-screen-back").hidden = false;
 
   drawEndScreenReef(won ? null : 0);
-  if (!won) filter(GRAY); // same desaturated "game over" look as the live scene used to get
 
-  if (won) drawReefSavedBanner();
-  else drawReefDeadBanner();
+  if (won) {
+    // a win stays lively — a few fish swimming back and forth, bubbles drifting up
+    updateAndDrawEndScreenFish();
+    updateAndDrawEndScreenBubbles();
+  } else {
+    // a loss stays a single still, gray frame — no motion, no fish/bubbles
+    filter(GRAY);
+  }
 }
 
 // ======================================================
@@ -1423,6 +1557,8 @@ let gameWon = false;
 let gameEnded = false; // true the instant the reef dies or the game is won
 let endScreenShownAt = null; // millis() when the win/lose outcome was decided
 const END_SCREEN_BANNER_MS = 3000; // how long the banner sits over the live reef before swapping to the dedicated end screen
+let endScreenTransitionStart = null; // millis() of the first frame the dedicated end screen shows — drives its fade-in
+const END_SCREEN_FADE_MS = 600; // how long that fade-in takes
 let gamePaused = false;
 let pauseStartTime = null; // millis() when paused — the gap gets folded back into gameStartTime on resume
 
@@ -1466,7 +1602,9 @@ function restartGame() {
   gamePaused = false;
   gameEnded = false;
   document.getElementById("pause-panel").hidden = true;
+  document.getElementById("end-screen-back").hidden = true;
   gameWon = false;
+  endScreenTransitionStart = null;
   reefDeathTime = null;
   shieldLevel = 0;
   shieldDisplayLevel = 0;
@@ -1513,6 +1651,7 @@ function backToHome() {
   document.getElementById("pause-toggle").hidden = true;
   document.getElementById("end-screen-back").hidden = true;
   gameWon = false;
+  endScreenTransitionStart = null;
   reefDeathTime = null;
   shieldLevel = 0;
   shieldDisplayLevel = 0;
@@ -2051,6 +2190,8 @@ function randomizeCorals() {
   coralPlan = buildPlantPlan(CORAL_POSITIONS, CORAL_DRAW_FNS);
   seaweedPlan = buildPlantPlan(SEAWEED_POSITIONS, SEAWEED_DRAW_FNS);
   buildEndScreenPlan();
+  initEndScreenFish();
+  initEndScreenBubbles();
 }
 
 // index of drawCoral5 within CORAL_DRAW_FNS/coralPlan — drawn separately in
