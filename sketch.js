@@ -252,6 +252,17 @@ function setGradientFill(x1, y1, x2, y2, stops) {
   drawingContext.fillStyle = g;
 }
 
+// same REEFLECT-brand gradient used on the welcome/credits titles (CSS:
+// linear-gradient(259.66deg, #2eb8f1 10.021%, #d8f4ea 80.111%)), approximated
+// here as a left-to-right gradient since canvas text has no CSS angle concept
+function setTitleGradientFill(leftX, rightX, y) {
+  let g = drawingContext.createLinearGradient(leftX, y, rightX, y);
+  g.addColorStop(0.10021, "#d8f4ea");
+  g.addColorStop(0.80111, "#2eb8f1");
+  fill(255);
+  drawingContext.fillStyle = g;
+}
+
 // Factory for the "circular sway" offset used by coral4/8/9: a point drifts
 // in a small circle whose radius fades out below `topLimit - topRange`.
 function makeCircularWave(topLimit, topRange, powExp, timeSpeed, pxFreq, pyFreq, dxScale, dyScale) {
@@ -1471,9 +1482,10 @@ function drawInstructionsScreen() {
 
   let y = height / 2 - boxH / 2 + 70;
 
-  fill(255);
   textFont("Inter");
   textSize(titleSize);
+  const titleW = textWidth(titleText);
+  setTitleGradientFill(width / 2 - titleW / 2, width / 2 + titleW / 2, y);
   text(titleText, width / 2, y);
   y += 60;
 
@@ -1551,9 +1563,10 @@ function drawLegendScreen() {
 
   let y = height / 2 - boxH / 2 + 60;
 
-  fill(255);
   textFont("Inter");
   textSize(40);
+  const titleW = textWidth(titleText);
+  setTitleGradientFill(width / 2 - titleW / 2, width / 2 + titleW / 2, y);
   text(titleText, width / 2, y);
   y += 55;
 
