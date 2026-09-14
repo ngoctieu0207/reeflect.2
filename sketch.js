@@ -52,8 +52,8 @@ const CORAL_MOVEMENT_RATE_VARIANCE = 0.15; // how far the pulse drifts from the 
 const SEAWEED_SWAY_REFERENCE_SPEED = 1.35; // pulse cycle speed, matched to seaweed sway
 const BUBBLE_BREATH_VOLUME = 0.11; // plays on every bubble, loud enough to actually hear
 const BUBBLE_EATING_VOLUME = 0.75; // rarer event, should read clearly over the mix
-const PROTECTOR_VOLUME = 1; // p5.sound's volume cap — see PROTECTOR_GAIN_BOOST for more
-const PROTECTOR_GAIN_BOOST = 2.1; // extra boost past the 1.0 cap, via a raw GainNode in setup()
+const PROTECTOR_VOLUME = 0.45; // fires on every good hit, so kept well below the old rare-event level
+const PROTECTOR_GAIN_BOOST = 1.2; // mild boost via a raw GainNode in setup() — see PROTECTOR_VOLUME
 const CLOCK_VOLUME = 0.4; // plays once when 5s are left on the timer — kept fairly quiet
 const CLICK_VOLUME = 0.4;
 
