@@ -54,7 +54,7 @@ const BUBBLE_BREATH_VOLUME = 0.11; // plays on every bubble, loud enough to actu
 const BUBBLE_EATING_VOLUME = 0.75; // rarer event, should read clearly over the mix
 const DIE_CORAL_VOLUME = 1; // p5.sound's volume cap — see DIE_CORAL_GAIN_BOOST for more
 const DIE_CORAL_GAIN_BOOST = 2.1; // extra boost past the 1.0 cap, via a raw GainNode in setup()
-const PROTECTOR_VOLUME = 0.3; // plays every time the shield dome grows — kept quiet, it fires often
+const PROTECTOR_VOLUME = 0.65; // plays every time the shield dome grows — satisfying, should read clearly
 const CLICK_VOLUME = 0.4;
 
 // re-applies the Music slider — called once in setup() and again any time
