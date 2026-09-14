@@ -1416,7 +1416,7 @@ let endScreenBubbles = [];
 function initEndScreenFish() {
   const fns = [drawGoodFish1, drawGoodFish2, drawGoodFish3];
   endScreenFish = [];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 6; i++) {
     endScreenFish.push({
       fn: fns[i % fns.length],
       x: random(200, 1720),
