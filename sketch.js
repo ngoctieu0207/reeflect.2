@@ -1288,7 +1288,7 @@ function drawReefSavedBanner() {
 // ======================================================
 
 const GAME_DURATION_MS = 30000;
-const SHIELD_WIN_THRESHOLD = 0.8;
+const SHIELD_WIN_THRESHOLD = 0.5;
 
 let gameStartTime = null; // set once the player actually starts playing
 let gameStarted = false;
