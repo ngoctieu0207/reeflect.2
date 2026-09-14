@@ -133,26 +133,57 @@
        Plain JS, independent of p5 (which only draws inside the already-sized
        canvas) so it also applies before/without the p5 script ever loading.
 
-       On phones held in portrait, a media query in style.css rotates <html>
-       90° (width/height swapped to 100vh/100vw) so the game still renders
-       landscape without the player needing to physically turn their phone —
-       desktop and tablets (iPad included) are excluded and behave exactly
-       as before. window.innerWidth/innerHeight don't reliably reflect that
-       swapped, rotated box on real mobile browsers (they can still report
-       the page's original portrait size), so measure <body>'s own actual
-       CSS box directly instead — correct in both the normal and rotated case,
-       no need to duplicate the media query's condition here at all. (Not
-       document.documentElement: browsers special-case <html>'s clientWidth/
-       clientHeight to always report the raw viewport size, ignoring any
-       width/height CSS set on <html> itself — <body> has no such quirk.) -->
+       On phones held in portrait, applyLandscapeLock() rotates <html> 90° so
+       the game still renders landscape without the player needing to
+       physically turn their phone — desktop and tablets (iPad included) are
+       excluded and behave exactly as before. This used to be a CSS media
+       query sizing <html> with width:100vh/height:100vw, but mobile browsers'
+       vh/vw units shift as the address bar shows/hides, which threw off both
+       the sizing (a visible "zoom") and, worse, touch coordinates (bubbles
+       popping somewhere other than where you tapped) — so instead this reads
+       window.innerWidth/innerHeight directly (always the true, current
+       viewport) and applies that as fixed inline pixel styles, recomputed on
+       every resize/orientationchange rather than left to CSS units. -->
   <script>
+    function isPhonePortrait() {
+      return window.matchMedia("(max-width: 600px) and (pointer: coarse)").matches
+        && window.innerHeight > window.innerWidth;
+    }
+
+    function applyLandscapeLock() {
+      var html = document.documentElement;
+      if (isPhonePortrait()) {
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+        html.style.position = "absolute";
+        html.style.top = "0";
+        html.style.left = w + "px";
+        html.style.width = h + "px";
+        html.style.height = w + "px";
+        html.style.transformOrigin = "left top";
+        html.style.transform = "rotate(90deg)";
+        html.style.overflow = "hidden";
+        return { w: h, h: w }; // the space now available to #scene, post-rotation
+      }
+      html.style.position = "";
+      html.style.top = "";
+      html.style.left = "";
+      html.style.width = "";
+      html.style.height = "";
+      html.style.transformOrigin = "";
+      html.style.transform = "";
+      html.style.overflow = "";
+      return { w: window.innerWidth, h: window.innerHeight };
+    }
+
     function fitScene() {
       var scene = document.getElementById("scene");
-      var body = document.body;
-      var scale = Math.min(body.clientWidth / 1920, body.clientHeight / 1080);
+      var space = applyLandscapeLock();
+      var scale = Math.min(space.w / 1920, space.h / 1080);
       scene.style.transform = "translate(-50%, -50%) scale(" + scale + ")";
     }
     window.addEventListener("resize", fitScene);
+    window.addEventListener("orientationchange", fitScene);
     fitScene();
   </script>
 

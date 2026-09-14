@@ -18,25 +18,12 @@ body {
 
 /* ======================================================
    FORCE LANDSCAPE ON PHONES
-   Desktop and tablets (iPad included) are untouched — this only fires on
-   narrow, touch, portrait viewports (i.e. an actual phone held upright).
+   Handled entirely in JS (see applyLandscapeLock() in index.html) rather
+   than a CSS media query — mobile browsers' vh/vw units shift as the
+   address bar shows/hides, which threw off both the sizing and (as a
+   result) touch coordinates when this used width:100vh/height:100vw here.
+   JS recomputes from the live window.innerWidth/innerHeight instead.
 ====================================================== */
-
-@media (max-width: 600px) and (orientation: portrait) and (pointer: coarse) {
-  html {
-    width: 100vh;
-    height: 100vw;
-
-    position: absolute;
-    top: 0;
-    left: 100%;
-
-    transform: rotate(90deg);
-    transform-origin: left top;
-
-    overflow: hidden;
-  }
-}
 
 
 /* ======================================================
