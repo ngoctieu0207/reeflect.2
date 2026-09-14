@@ -114,36 +114,6 @@ function updateSoundButton() {
     : "assets/images/speaker-x.svg";
 }
 
-// tracks the pending pause() from the fade-out below, so a restart/return
-// home that happens mid-fade can cancel it — otherwise it fires later and
-// incorrectly pauses whatever audio that restart/return just started fresh
-let silenceTimeoutId = null;
-
-// Called once, the instant the reef fully dies (or the game is won) — fades
-// every loop out to match "the reef has gone silent" instead of just
-// cutting them off.
-function silenceAmbientSounds() {
-  if (!soundOn) return;
-
-  const fadeTime = 1.5;
-  musicSound.fade(0, fadeTime);
-  underwaterSound.fade(0, fadeTime);
-  coralMovementSound.fade(0, fadeTime);
-
-  silenceTimeoutId = setTimeout(() => {
-    musicSound.pause();
-    underwaterSound.pause();
-    coralMovementSound.pause();
-    // restore their normal volume (at the current slider levels) for the
-    // next time sound is turned back on
-    applyMusicVolume();
-    applySfxVolumes();
-  }, fadeTime * 1000);
-
-  soundOn = false;
-  updateSoundButton();
-}
-
 // ======================================================
 // FLOATING PARTICLES ("marine snow" dust drifting in the water)
 // ======================================================
@@ -1165,7 +1135,6 @@ function draw() {
   const reefDead = coralPlan.length > 0 && coralPlan.every((c) => c.faded);
   if (reefDead && reefDeathTime === null) {
     reefDeathTime = millis(); // freeze seaweed's sway at this exact instant
-    silenceAmbientSounds(); // the reef has gone silent — fade the ambience out too
     document.getElementById("pause-toggle").hidden = true; // nothing left to pause once the game's decided
     gameEnded = true;
     endScreenShownAt = millis();
@@ -1590,7 +1559,6 @@ function togglePause() {
 // resets the current round back to a fresh start — same as startGame(), but
 // also clears out everything a round accumulates along the way
 function restartGame() {
-  clearTimeout(silenceTimeoutId); // cancel any pending fade-out pause so it can't clobber the restart
   playUiClick();
   gamePaused = false;
   gameEnded = false;
@@ -1623,8 +1591,6 @@ function restartGame() {
 // the pause menu's "Back to home" and by clicking anywhere on the end-game
 // banner (win or lose)
 function backToHome() {
-  clearTimeout(silenceTimeoutId); // cancel any pending fade-out pause so it can't clobber the restart
-
   // fully reset the audio state first, so the click below restarts the
   // music/ambience fresh from the top — regardless of whether it was
   // currently paused (pause menu) or silenced (the round just ended)
@@ -1843,7 +1809,6 @@ function checkGameOutcome() {
     document.getElementById("pause-toggle").hidden = true; // nothing left to pause once the game's decided
     gameEnded = true;
     endScreenShownAt = millis();
-    silenceAmbientSounds(); // a win goes quiet too, same as a loss
   } else {
     // the shield never grew enough — the reef goes silent, reusing the
     // exact same "every coral faded" ending as before
