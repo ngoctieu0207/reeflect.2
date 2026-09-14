@@ -187,7 +187,7 @@ canvas {
   position: absolute;
 
   left: 50%;
-  top: 70px;
+  top: 110px;
   transform: translateX(-50%);
 
   margin: 0;
@@ -214,7 +214,7 @@ canvas {
   position: absolute;
 
   left: 50%;
-  top: 690px;
+  top: 590px;
   transform: translateX(-50%);
 
   display: flex;
