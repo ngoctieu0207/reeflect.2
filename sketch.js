@@ -1174,26 +1174,6 @@ function draw() {
   // drawCorals() below, after all rocks
   drawCoralByIndex(CORAL5_PLAN_INDEX);
   drawRock3(...LAYOUT.rock3);
-
-  // the protective shield dome sits over the whole reef, in front of
-  // rock1-3 but behind rock4/rock5 (per request) — it starts out invisible
-  // and grows as "good" items land on coral (see spawnDebris /
-  // updateAndDrawDebris), shrinking back down whenever trash lands instead.
-  // shieldDisplayLevel eases toward the real shieldLevel each frame instead
-  // of jumping straight to it, so every grow/shrink animates in smoothly.
-  if (!gameOver) {
-    shieldDisplayLevel += (shieldLevel - shieldDisplayLevel) * min(1, SHIELD_EASE_SPEED * deltaTime * 0.001);
-    if (abs(shieldLevel - shieldDisplayLevel) < 0.001) shieldDisplayLevel = shieldLevel;
-  }
-  if (shieldDisplayLevel > 0.001) {
-    const domeScale = LAYOUT.shieldDome[2] * shieldDisplayLevel; // LAYOUT.shieldDome's s is the full-grown size
-    const domeWidth = SHIELD_NATURAL_W * domeScale;
-    const domeHeight = SHIELD_NATURAL_H * domeScale;
-    drawShieldDome((width - domeWidth) / 2, height - domeHeight - SHIELD_BOTTOM_MARGIN, domeScale);
-  }
-
-  drawRock4(...LAYOUT.rock4);
-  drawRock5(...LAYOUT.rock5);
   // coral3/seaweed5 render here so they sit in front of rock1-5 — per request
   drawCoralByIndex(CORAL3_PLAN_INDEX);
   drawSeaweedByIndex(SEAWEED5_PLAN_INDEX, frozenTime);
@@ -1217,6 +1197,28 @@ function draw() {
   updateAndDrawBubbles(holdStill);
 
   drawParticles();
+
+  // the protective shield dome sits over the entire reef scene, above
+  // everything drawn so far — it starts out invisible and grows as "good"
+  // items land on coral (see spawnDebris / updateAndDrawDebris), shrinking
+  // back down whenever trash lands instead. shieldDisplayLevel eases toward
+  // the real shieldLevel each frame instead of jumping straight to it, so
+  // every grow/shrink animates in smoothly.
+  if (!gameOver) {
+    shieldDisplayLevel += (shieldLevel - shieldDisplayLevel) * min(1, SHIELD_EASE_SPEED * deltaTime * 0.001);
+    if (abs(shieldLevel - shieldDisplayLevel) < 0.001) shieldDisplayLevel = shieldLevel;
+  }
+  if (shieldDisplayLevel > 0.001) {
+    const domeScale = LAYOUT.shieldDome[2] * shieldDisplayLevel; // LAYOUT.shieldDome's s is the full-grown size
+    const domeWidth = SHIELD_NATURAL_W * domeScale;
+    const domeHeight = SHIELD_NATURAL_H * domeScale;
+    drawShieldDome((width - domeWidth) / 2, height - domeHeight - SHIELD_BOTTOM_MARGIN, domeScale);
+  }
+
+  // rock4/rock5 sit on top of absolutely everything else, including the
+  // shield dome — per request
+  drawRock4(...LAYOUT.rock4);
+  drawRock5(...LAYOUT.rock5);
 
   if (gameStarted && !gameOver) drawTimeBar();
 
