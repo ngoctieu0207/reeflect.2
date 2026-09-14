@@ -29,7 +29,7 @@ let underwaterSound;
 let coralMovementSound;
 let bubbleBreathSound;
 let bubbleEatingSound;
-let dieCoralSound;
+let protectorSound;
 let clockSound;
 let clickSound;
 let soundOn = true; // the player's on/off preference — on by default, no opt-in needed
@@ -52,8 +52,8 @@ const CORAL_MOVEMENT_RATE_VARIANCE = 0.15; // how far the pulse drifts from the 
 const SEAWEED_SWAY_REFERENCE_SPEED = 1.35; // pulse cycle speed, matched to seaweed sway
 const BUBBLE_BREATH_VOLUME = 0.11; // plays on every bubble, loud enough to actually hear
 const BUBBLE_EATING_VOLUME = 0.75; // rarer event, should read clearly over the mix
-const DIE_CORAL_VOLUME = 1; // p5.sound's volume cap — see DIE_CORAL_GAIN_BOOST for more
-const DIE_CORAL_GAIN_BOOST = 2.1; // extra boost past the 1.0 cap, via a raw GainNode in setup()
+const PROTECTOR_VOLUME = 1; // p5.sound's volume cap — see PROTECTOR_GAIN_BOOST for more
+const PROTECTOR_GAIN_BOOST = 2.1; // extra boost past the 1.0 cap, via a raw GainNode in setup()
 const CLOCK_VOLUME = 0.4; // plays once when 5s are left on the timer — kept fairly quiet
 const CLICK_VOLUME = 0.4;
 
@@ -70,7 +70,7 @@ function applySfxVolumes() {
   coralMovementSound.setVolume(CORAL_MOVEMENT_VOLUME * sfxVolume);
   bubbleBreathSound.setVolume(BUBBLE_BREATH_VOLUME * sfxVolume);
   bubbleEatingSound.setVolume(BUBBLE_EATING_VOLUME * sfxVolume);
-  dieCoralSound.setVolume(DIE_CORAL_VOLUME * sfxVolume);
+  protectorSound.setVolume(PROTECTOR_VOLUME * sfxVolume);
   clockSound.setVolume(CLOCK_VOLUME * sfxVolume);
 }
 
@@ -333,7 +333,7 @@ function preload() {
   coralMovementSound = loadSound("assets/sounds/coral-movement-sound.wav");
   bubbleBreathSound = loadSound("assets/sounds/underwater-bubble-sound.wav");
   bubbleEatingSound = loadSound("assets/sounds/bubble-eating-sound.wav");
-  dieCoralSound = loadSound("assets/sounds/coral-die-sound.wav");
+  protectorSound = loadSound("assets/sounds/protector-sound.wav");
   clockSound = loadSound("assets/sounds/clock-sound.wav");
   clickSound = loadSound("assets/sounds/clicking-sound.wav");
 }
@@ -785,7 +785,6 @@ function updateAndDrawDebris(frozen = false) {
             if (soundOn) bubbleEatingSound.play();
           } else {
             shrinkShield();
-            if (soundOn) dieCoralSound.play();
           }
           hitCoral = true;
           break;
@@ -1049,7 +1048,7 @@ function setup() {
   // out or swallow debris close together) instead of cutting each other off
   bubbleBreathSound.playMode("sustain");
   bubbleEatingSound.playMode("sustain");
-  dieCoralSound.playMode("sustain");
+  protectorSound.playMode("sustain");
   // p5.sound's setVolume() is clamped to [0, 1], so it can't make this any
   // louder on its own. To push it past that, route the sound through its
   // own raw Web Audio GainNode set above 1 — rewires the sound's output
@@ -1058,9 +1057,9 @@ function setup() {
   {
     const ctx = getAudioContext();
     const boostGain = ctx.createGain();
-    boostGain.gain.value = DIE_CORAL_GAIN_BOOST;
-    dieCoralSound.disconnect();
-    dieCoralSound.panner.connect(boostGain);
+    boostGain.gain.value = PROTECTOR_GAIN_BOOST;
+    protectorSound.disconnect();
+    protectorSound.panner.connect(boostGain);
     boostGain.connect(ctx.destination);
   }
 
@@ -1893,6 +1892,7 @@ const SHIELD_EASE_SPEED = 3; // how fast the dome eases to its new size — high
 
 function growShield() {
   shieldLevel = constrain(shieldLevel + SHIELD_GROW_STEP, 0, 1);
+  if (soundOn) protectorSound.play();
 }
 
 function shrinkShield() {
