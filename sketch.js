@@ -4,6 +4,7 @@ let rock3Img;
 let rock4Img;
 let rock5Img;
 let rock6Img;
+let shieldDomeImg;
 
 let trashBottleImg1, trashBottleImg2, trashBottleImg3;
 let trashMilkBoxImg1, trashMilkBoxImg2, trashMilkBoxImg3;
@@ -320,6 +321,7 @@ function preload() {
   rock4Img = loadImage("assets/images/rock4.png");
   rock5Img = loadImage("assets/images/rock5.png");
   rock6Img = loadImage("assets/images/rock6.png");
+  shieldDomeImg = loadImage("assets/images/shield-dome.svg");
 
   // SVG, not PNG — the PNG export from Figma baked in that frame's own
   // (dark) background fill, since these litter pieces are grouped inside
@@ -1210,9 +1212,9 @@ function draw() {
   }
   if (shieldDisplayLevel > 0.001) {
     const domeScale = LAYOUT.shieldDome[2] * shieldDisplayLevel; // LAYOUT.shieldDome's s is the full-grown size
-    const domeWidth = 1681 * domeScale;
-    const domeHeight = 802 * domeScale;
-    drawShieldDome((width - domeWidth) / 2, height - domeHeight, domeScale, frozenTime);
+    const domeWidth = SHIELD_NATURAL_W * domeScale;
+    const domeHeight = SHIELD_NATURAL_H * domeScale;
+    drawShieldDome((width - domeWidth) / 2, height - domeHeight - SHIELD_BOTTOM_MARGIN, domeScale);
   }
 
   if (gameStarted && !gameOver) drawTimeBar();
@@ -1640,16 +1642,15 @@ function drawTimeBar() {
 }
 
 // ======================================================
-// SHIELD DOME (the reef's protective bubble/shield — a big soft dome shape,
-// drawn as code like the corals so it can animate: the outline itself
-// ripples/breathes in place — no scaling or moving of the whole shape, and
-// the bottom edge (flush with the screen) stays perfectly still, like it's
-// anchored to the ground)
+// SHIELD DOME (the reef's protective bubble/shield — a big soft dome image,
+// grown/shrunk by scaling it. Its natural size is 1491x908 (see
+// assets/images/shield-dome.svg) and it sits with a small gap above the
+// bottom of the screen instead of flush against the edge.)
 // ======================================================
 
-const SHIELD_BASE_ALPHA = 77; // matches the original fill-opacity: 0.3 (0.3 * 255) — constant, no fading
-const SHIELD_RIPPLE_AMOUNT = 20; // how far the outline wobbles sideways at the very top (path units)
-const SHIELD_PULSE_SPEED = 1; // pulse cycles per ~10 seconds
+const SHIELD_NATURAL_W = 1491;
+const SHIELD_NATURAL_H = 908;
+const SHIELD_BOTTOM_MARGIN = 40; // gap kept between the dome's bottom edge and the screen edge
 
 // 0 = fully hidden (the game starts with no shield at all), 1 = full-grown
 // (LAYOUT.shieldDome's tuned size). A "good" item landing on coral grows it,
@@ -1669,41 +1670,11 @@ function shrinkShield() {
   shieldLevel = constrain(shieldLevel - SHIELD_SHRINK_STEP, 0, 1);
 }
 
-function drawShieldDome(x, y, s = 1, frozenTime = null) {
-  const time = (frozenTime !== null ? frozenTime : millis()) * 0.001 * SHIELD_PULSE_SPEED;
-
-  // sideways wobble for one point on the outline: zero right at the bottom
-  // edge (py = 802, flush with the screen — stays perfectly anchored) and
-  // strongest at the top of the dome (py = 0) — same falloff idea as the
-  // coral sway system, just a single simple wave here
-  function ripple(py, phase) {
-    const falloff = 1 - constrain(py / 802, 0, 1);
-    return sin(time + phase) * SHIELD_RIPPLE_AMOUNT * falloff;
-  }
-
+function drawShieldDome(x, y, s = 1) {
   push();
   translate(x, y);
   scale(s);
-
-  stroke(255, 255, 255, 150);
-  strokeWeight(2 / s);
-  fill(217, 217, 217, SHIELD_BASE_ALPHA);
-
-  beginShape();
-  vertex(841.5 + ripple(0.0375595, 0), 0.0375595);
-  bezierVertex(
-    154.3 + ripple(5.25661, 0.5), 5.25661,
-    -0.0000335276 + ripple(539.65, 1), 539.65,
-    0, 802 // bottom-left corner — stays fixed
-  );
-  vertex(1681, 802); // bottom-right corner — stays fixed
-  bezierVertex(
-    1681 + ripple(536.388, 1.5), 536.388,
-    1528.7 + ripple(-5.18149, 2), -5.18149,
-    841.5 + ripple(0.0375595, 0), 0.0375595
-  );
-  endShape(CLOSE);
-
+  image(shieldDomeImg, 0, 0);
   pop();
 }
 
