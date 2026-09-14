@@ -187,14 +187,14 @@ canvas {
   position: absolute;
 
   left: 50%;
-  top: 355px;
+  top: 220px;
   transform: translateX(-50%);
 
   margin: 0;
 
   font-family: "apotek-wide", "Inter", sans-serif;
   font-weight: 700;
-  font-size: 200px;
+  font-size: 260px;
   line-height: 1;
   text-align: center;
   white-space: nowrap;
@@ -336,28 +336,6 @@ canvas {
 
   cursor: pointer;
 }
-
-/* a gentle underwater drift — bob up/down and sway a few degrees either
-   side of each item's own base rotation (--r), staggered per item (via
-   animation-delay/duration below) so they don't all move in lockstep */
-@keyframes deco-float {
-  0%   { transform: translateY(0)     rotate(calc(var(--r) - 3deg)) scaleX(var(--flip, 1)); }
-  50%  { transform: translateY(-14px) rotate(calc(var(--r) + 3deg)) scaleX(var(--flip, 1)); }
-  100% { transform: translateY(0)     rotate(calc(var(--r) - 3deg)) scaleX(var(--flip, 1)); }
-}
-
-.welcome-deco {
-  position: absolute;
-  pointer-events: none;
-  animation-name: deco-float;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-}
-
-#deco-fish { left: 420px; top: 270px; width: 150px; --r: -6deg; --flip: -1; animation-duration: 3.8s; animation-delay: 1s; }
-#deco-milkbox { left: 1055px; top: 215px; width: 120px; --r: 10deg; animation-duration: 4.3s; animation-delay: 1.5s; }
-#deco-bottle { left: 1590px; top: 290px; width: 85px; --r: -10deg; animation-duration: 3.6s; animation-delay: 2s; }
-
 
 /* ======================================================
    SOUND TOGGLE
