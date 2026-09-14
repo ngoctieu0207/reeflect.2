@@ -868,7 +868,7 @@ function spawnBubbleAt(x, y) {
 // spawn a bubble stacked in the top-left corner where that button sits
 function isClickOnPageUI(event) {
   return !!(event && event.target && event.target.closest(
-    "#sound-toggle, #sound-panel, #welcome-screen, #credits-screen, #pause-toggle, #pause-panel"
+    "#sound-toggle, #sound-panel, #welcome-screen, #credits-screen, #pause-toggle, #pause-panel, #end-screen-back"
   ));
 }
 
@@ -924,7 +924,7 @@ function mousePressed(event) {
     return;
   }
   if (gamePaused) return;
-  if (gameEnded) return backToHome(); // click anywhere on the win/lose banner
+  if (gameEnded) return; // game's over — no more bubbles; the end screen has its own Back button
   popBubbleAtClient(event.clientX, event.clientY);
 }
 
@@ -947,7 +947,7 @@ function touchStarted(event) {
     return false;
   }
   if (gamePaused) return false;
-  if (gameEnded) { backToHome(); return false; } // tap anywhere on the win/lose banner
+  if (gameEnded) return false; // game's over — no more bubbles; the end screen has its own Back button
   const t = event.touches[0] || event.changedTouches[0];
   if (t) popBubbleAtClient(t.clientX, t.clientY);
   return false; // prevent the default scroll/zoom touch behavior
@@ -1116,6 +1116,7 @@ function setup() {
   document.getElementById("pause-resume").addEventListener("click", togglePause);
   document.getElementById("pause-restart").addEventListener("click", restartGame);
   document.getElementById("pause-home").addEventListener("click", backToHome);
+  document.getElementById("end-screen-back").addEventListener("click", backToHome);
 
   // browsers block audio until a real user gesture happens — rather than
   // wait for the player to click one specific button, treat literally the
@@ -1156,8 +1157,18 @@ function draw() {
     silenceAmbientSounds(); // the reef has gone silent — fade the ambience out too
     document.getElementById("pause-toggle").hidden = true; // nothing left to pause once the game's decided
     gameEnded = true;
+    endScreenShownAt = millis();
   }
   const gameOver = reefDead || gameWon;
+
+  // once the win/lose banner has had its ~5s on screen, replace the live
+  // reef entirely with the dedicated end screen (see drawEndScreen()) —
+  // everything below this only ever runs before that swap happens
+  if (gameOver && millis() - endScreenShownAt >= END_SCREEN_BANNER_MS) {
+    drawEndScreen(gameWon);
+    return;
+  }
+
   // before the player dismisses the instructions, once the game's decided,
   // or while paused, the scene sits calm and still — no debris falling, no
   // timer running
@@ -1245,8 +1256,6 @@ function drawEndBanner(titleText, subtitleText) {
 
   const titleSize = 80;
   const subtitleSize = 32;
-  const hintSize = 22;
-  const hintText = "Click anywhere to return home";
 
   // measure both lines first so the background box always fits them,
   // however wide these particular fonts/sizes end up rendering
@@ -1257,14 +1266,11 @@ function drawEndBanner(titleText, subtitleText) {
   textFont("Alata");
   textSize(subtitleSize);
   const subtitleW = textWidth(subtitleText);
-  textSize(hintSize);
-  const hintW = textWidth(hintText);
 
-  const boxW = max(titleW, subtitleW, hintW) + 140;
-  const boxH = 330;
-  const titleY = height / 2 - 75;
-  const subtitleY = height / 2 + 5;
-  const hintY = height / 2 + 100;
+  const boxW = max(titleW, subtitleW) + 140;
+  const boxH = 260;
+  const titleY = height / 2 - 45;
+  const subtitleY = height / 2 + 45;
 
   noStroke();
   fill(10, 20, 35, 150);
@@ -1280,10 +1286,6 @@ function drawEndBanner(titleText, subtitleText) {
   textSize(subtitleSize);
   text(subtitleText, width / 2, subtitleY);
 
-  fill(180, 230, 210);
-  textSize(hintSize);
-  text(hintText, width / 2, hintY);
-
   pop();
 }
 
@@ -1293,6 +1295,93 @@ function drawReefDeadBanner() {
 
 function drawReefSavedBanner() {
   drawEndBanner("The reef lives on.", "Every coral you saved brought color back to the ocean.");
+}
+
+// ======================================================
+// END SCREEN — shown once the win/lose banner has had its ~5s on the live
+// reef (see END_SCREEN_BANNER_MS in draw()). Its own separate, fixed layout
+// — not the live game's — reusing the original spec 1 a2 reef arrangement
+// (same rock/coral/seaweed draw functions, which never changed). A win
+// shows it full color and animated; a loss shows it frozen and desaturated.
+// ======================================================
+
+// NOTE: rock1-6's own PNG assets are different files in this project than
+// the ones spec 1 a2 was built against, so a2's raw rock coordinates don't
+// line up here (they rendered as broken/blocky rectangles) — these use this
+// project's own already-correct LAYOUT rock positions instead (looked up
+// lazily inside drawEndScreenReef(), since LAYOUT itself isn't defined yet
+// at this point in the file). Only coral/seaweed (hand-coded vector shapes,
+// unchanged since a2) reuse a2's numbers directly.
+const END_ROCK_DRAW_FNS = [drawRock1, drawRock2, drawRock3, drawRock4, drawRock5, drawRock6];
+function getEndRockXys() {
+  return [LAYOUT.rock1, LAYOUT.rock2, LAYOUT.rock3, LAYOUT.rock4, LAYOUT.rock5, LAYOUT.rock6[0]];
+}
+
+const END_CORAL_DRAW_FNS = [drawCoral1, drawCoral2, drawCoral3, drawCoral4, drawCoral5, drawCoral6,
+  drawCoral7, drawCoral8, drawCoral9, drawCoral10, drawCoral11, drawCoral12];
+const END_CORAL_XYS = [
+  [530, 850, 1], [250, 840, 0.85], [250, 980, 1], [1670, 630, 0.9], [1290, 900, 1], [1270, 850, 1],
+  [1485, 475, 1], [20, 330, 0.9], [15, 420, 0.95], [-5, 850, 0.9], [1650, 300, 0.9], [1620, 430, 1],
+];
+const END_CORAL_EXTENTS = [
+  [67.2, 148.3], [162.7, 262.2], [81.9, 155.3], [124.2, 169.7], [173.9, 330.1], [51.1, 87.8],
+  [47.8, 104.6], [101.8, 257.2], [101.6, 179.7], [114.6, 339.8], [99.2, 247.2], [67.0, 114.3],
+];
+
+const END_SEAWEED_DRAW_FNS = [drawSeaweed1, drawSeaweed2, drawSeaweed3, drawSeaweed4, drawSeaweed5, drawSeaweed6, drawSeaweed7];
+const END_SEAWEED_XYS = [
+  [220, 550, 1], [190, 520, 1], [40, 650, 0.8], [1640, 150, 1], [1260, 670, 1], [1240, 700, 1], [1210, 730, 1],
+];
+const END_SEAWEED_EXTENTS = [
+  [145.2, 212.8], [87.6, 215.0], [129.4, 304.5], [138.5, 350.2], [65.6, 173.7], [54.5, 144.5], [40.0, 112.6],
+];
+
+const END_CORAL_POSITIONS = END_CORAL_XYS.map(([x, y, s], i) => ({
+  x, y, s, centerX: END_CORAL_EXTENTS[i][0], bottomY: END_CORAL_EXTENTS[i][1],
+}));
+const END_SEAWEED_POSITIONS = END_SEAWEED_XYS.map(([x, y, s], i) => ({
+  x, y, s, centerX: END_SEAWEED_EXTENTS[i][0], bottomY: END_SEAWEED_EXTENTS[i][1],
+}));
+
+let endCoralPlan = [];
+let endSeaweedPlan = [];
+
+// rebuilt alongside the live reef every round (see randomizeCorals()) so
+// its colors stay fresh each playthrough too
+function buildEndScreenPlan() {
+  endCoralPlan = buildPlantPlan(END_CORAL_POSITIONS, END_CORAL_DRAW_FNS);
+  endSeaweedPlan = buildPlantPlan(END_SEAWEED_POSITIONS, END_SEAWEED_DRAW_FNS);
+}
+
+// frozenTime: null = live animation (a win), any number = frozen at that
+// pose (a loss uses 0)
+function drawEndScreenReef(frozenTime) {
+  const endRockXys = getEndRockXys();
+  END_ROCK_DRAW_FNS.forEach((fn, i) => {
+    const [x, y, s] = endRockXys[i];
+    fn(x, y, s);
+  });
+  endSeaweedPlan.forEach((p, i) => {
+    plantHueOverride = p.hue;
+    if (i === 0) p.fn(p.x, p.y, p.s, 0, frozenTime); // drawSeaweed1 has its own rotation param — 0 matches the original a2 layout
+    else p.fn(p.x, p.y, p.s, frozenTime);
+    plantHueOverride = null;
+  });
+  endCoralPlan.forEach((p) => {
+    plantHueOverride = p.hue;
+    p.fn(p.x, p.y, p.s, frozenTime);
+    plantHueOverride = null;
+  });
+}
+
+function drawEndScreen(won) {
+  document.getElementById("end-screen-back").hidden = false;
+
+  drawEndScreenReef(won ? null : 0);
+  if (!won) filter(GRAY); // same desaturated "game over" look as the live scene used to get
+
+  if (won) drawReefSavedBanner();
+  else drawReefDeadBanner();
 }
 
 // ======================================================
@@ -1309,7 +1398,9 @@ const SHIELD_WIN_THRESHOLD = 0.5;
 let gameStartTime = null; // set once the player actually starts playing
 let gameStarted = false;
 let gameWon = false;
-let gameEnded = false; // true the instant the reef dies or the game is won — click anywhere then returns home
+let gameEnded = false; // true the instant the reef dies or the game is won
+let endScreenShownAt = null; // millis() when the win/lose outcome was decided
+const END_SCREEN_BANNER_MS = 3000; // how long the banner sits over the live reef before swapping to the dedicated end screen
 let gamePaused = false;
 let pauseStartTime = null; // millis() when paused — the gap gets folded back into gameStartTime on resume
 
@@ -1398,6 +1489,7 @@ function backToHome() {
   gameStarted = false;
   document.getElementById("pause-panel").hidden = true;
   document.getElementById("pause-toggle").hidden = true;
+  document.getElementById("end-screen-back").hidden = true;
   gameWon = false;
   reefDeathTime = null;
   shieldLevel = 0;
@@ -1596,6 +1688,7 @@ function checkGameOutcome() {
     gameWon = true;
     document.getElementById("pause-toggle").hidden = true; // nothing left to pause once the game's decided
     gameEnded = true;
+    endScreenShownAt = millis();
     silenceAmbientSounds(); // a win goes quiet too, same as a loss
   } else {
     // the shield never grew enough — the reef goes silent, reusing the
@@ -1935,6 +2028,7 @@ function buildPlantPlan(positions, fns) {
 function randomizeCorals() {
   coralPlan = buildPlantPlan(CORAL_POSITIONS, CORAL_DRAW_FNS);
   seaweedPlan = buildPlantPlan(SEAWEED_POSITIONS, SEAWEED_DRAW_FNS);
+  buildEndScreenPlan();
 }
 
 // index of drawCoral5 within CORAL_DRAW_FNS/coralPlan — drawn separately in

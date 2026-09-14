@@ -491,6 +491,43 @@ canvas {
   display: none;
 }
 
+
+/* ======================================================
+   END SCREEN BACK BUTTON — small, bottom-right corner, shown only on the
+   dedicated win/lose end screen (see drawEndScreen() in sketch.js)
+====================================================== */
+
+#end-screen-back {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+
+  z-index: 20;
+
+  padding: 10px 28px;
+
+  background: rgba(10, 20, 35, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 30px;
+  backdrop-filter: blur(4px);
+
+  color: #fff;
+  font-family: "apotek-wide", "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+
+  cursor: pointer;
+}
+
+#end-screen-back:hover {
+  background: rgba(10, 20, 35, 0.85);
+}
+
+#end-screen-back[hidden] {
+  display: none;
+}
+
 #pause-icon {
   width: 20px;
   height: 22px;
