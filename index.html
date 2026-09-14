@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Coral Reef</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Google Fonts (Inter Black + Alata, used by the "reef has gone silent" banner) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alata&family=Inter:wght@900&display=swap">
+
+  <!-- Adobe Fonts (Apotek Wide, used by the welcome/credits titles + buttons) -->
+  <link rel="stylesheet" href="https://use.typekit.net/rav6zvx.css">
+
+  <!-- p5.js -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"
+  ></script>
+
+  <!-- p5.sound (adds loadSound/SoundFile, needed for the ambient + one-shot sounds) -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/addons/p5.sound.min.js"
+  ></script>
+
+  <!-- Your JS -->
+  <script src="sketch.js" defer></script>
+</head>
+
+<body>
+
+  <div id="scene">
+
+    <!-- BACKGROUND -->
+    <img
+      class="background"
+      src="assets/images/background.png"
+      alt=""
+    >
+
+    <!-- WELCOME SCREEN — first thing shown on load. Transparent, so the real
+         background image AND the live animated reef (corals/seaweed/rocks,
+         drawn on the canvas underneath) show straight through — no separate
+         art, no static duplicate. START skips straight into the game; HOW TO
+         PLAY walks through the existing rules + legend screens then returns
+         here; CREDITS shows a placeholder panel. -->
+    <div id="welcome-screen">
+      <img class="welcome-deco" id="deco-bag" src="assets/images/reusebag1.svg" alt="">
+      <img class="welcome-deco" id="deco-sunscreen-left" src="assets/images/sunscreen1.svg" alt="">
+      <img class="welcome-deco" id="deco-fish" src="assets/images/fish1.svg" alt="">
+      <img class="welcome-deco" id="deco-milkbox" src="assets/images/milkboxtrash1.svg" alt="">
+      <img class="welcome-deco" id="deco-bottle" src="assets/images/bottletrash1.svg" alt="">
+      <img class="welcome-deco" id="deco-sunscreen-right" src="assets/images/sunscreen2.svg" alt="">
+
+      <h1 id="welcome-title">REEFLECT</h1>
+
+      <div id="welcome-buttons">
+        <button type="button" id="welcome-start" class="welcome-btn">START</button>
+        <button type="button" id="welcome-howto" class="welcome-btn">HOW TO PLAY</button>
+        <button type="button" id="welcome-credits" class="welcome-btn">CREDITS</button>
+      </div>
+    </div>
+
+    <!-- CREDITS -->
+    <div id="credits-screen" hidden>
+      <div class="credits-panel">
+        <h1 id="credits-title">REEFLECT</h1>
+        <p class="credits-author">Made by Tiêu Dĩnh Ngọc</p>
+
+        <h2 class="credits-heading">Abstract</h2>
+        <p class="credits-text">Reeflect is an interactive game about coral reef conservation and the impact of everyday human actions on marine ecosystems. Through simple gameplay, players experience how different choices can either help protect or harm coral reefs. The game encourages Gen Z to reflect on their daily habits and understand that protecting marine life can begin with small, responsible actions.</p>
+
+        <h2 class="credits-heading">SDG 14.5</h2>
+        <p class="credits-text">This game is inspired by the importance of SDG 14.5:</p>
+        <blockquote class="credits-quote">“By 2020, conserve at least 10% of coastal and marine areas, consistent with national and international law and based on the best available scientific information.”</blockquote>
+        <p class="credits-text">The game highlights the importance of protecting coral reefs and marine habitats, showing how everyday human actions can contribute to healthier ocean ecosystems.</p>
+
+        <h2 class="credits-heading">Purpose</h2>
+        <p class="credits-text">The game aims to raise awareness about coral reef conservation and encourage Gen Z to make more responsible everyday choices.</p>
+        <p class="credits-cta">CTA: Change everyday habits to protect coral reefs.</p>
+
+        <p id="credits-hint">Click anywhere to go back</p>
+      </div>
+    </div>
+
+    <!-- SOUND TOGGLE — sound defaults to on (browsers still require one real
+         interaction before audio can actually play, but nothing here asks
+         the player to turn it on first). Click opens a small panel with
+         Music/SFX/UI volume sliders. -->
+    <button id="sound-toggle" type="button" aria-pressed="true" aria-label="Sound settings">
+      <img id="sound-toggle-icon" src="assets/images/speaker-high.svg" alt="">
+    </button>
+
+    <div id="sound-panel" hidden>
+      <label class="sound-row">
+        <span>Music</span>
+        <input type="range" id="music-volume" min="0" max="100" value="50">
+      </label>
+      <label class="sound-row">
+        <span>SFX</span>
+        <input type="range" id="sfx-volume" min="0" max="100" value="50">
+      </label>
+      <label class="sound-row">
+        <span>UI</span>
+        <input type="range" id="ui-volume" min="0" max="100" value="50">
+      </label>
+    </div>
+
+    <!-- PAUSE TOGGLE — only shown once the player is actually in a round -->
+    <button id="pause-toggle" type="button" aria-label="Pause" hidden>
+      <span id="pause-icon"><span></span><span></span></span>
+    </button>
+
+    <div id="pause-panel" hidden>
+      <h2 id="pause-title">Paused</h2>
+      <button type="button" id="pause-resume" class="welcome-btn">RESUME</button>
+      <button type="button" id="pause-restart" class="welcome-btn">RESTART</button>
+      <button type="button" id="pause-home" class="welcome-btn">BACK TO HOME</button>
+    </div>
+
+  </div>
+
+  <!-- Scales #scene to whatever the largest size is that still fits the
+       viewport while keeping its 1920x1080 (16:9) box intact — so the page
+       never has to scroll or letterbox, it just shrinks/grows as one piece.
+       Plain JS, independent of p5 (which only draws inside the already-sized
+       canvas) so it also applies before/without the p5 script ever loading. -->
+  <script>
+    function fitScene() {
+      var scene = document.getElementById("scene");
+      var scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+      scene.style.transform = "translate(-50%, -50%) scale(" + scale + ")";
+    }
+    window.addEventListener("resize", fitScene);
+    fitScene();
+  </script>
+
+</body>
+</html>
