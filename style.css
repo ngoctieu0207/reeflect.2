@@ -17,6 +17,29 @@ body {
 
 
 /* ======================================================
+   FORCE LANDSCAPE ON PHONES
+   Desktop and tablets (iPad included) are untouched — this only fires on
+   narrow, touch, portrait viewports (i.e. an actual phone held upright).
+====================================================== */
+
+@media (max-width: 600px) and (orientation: portrait) and (pointer: coarse) {
+  html {
+    width: 100vh;
+    height: 100vw;
+
+    position: absolute;
+    top: 0;
+    left: 100%;
+
+    transform: rotate(90deg);
+    transform-origin: left top;
+
+    overflow: hidden;
+  }
+}
+
+
+/* ======================================================
    BODY
 ====================================================== */
 
@@ -266,17 +289,29 @@ canvas {
   cursor: pointer;
 }
 
+/* a gentle underwater drift — bob up/down and sway a few degrees either
+   side of each item's own base rotation (--r), staggered per item (via
+   animation-delay/duration below) so they don't all move in lockstep */
+@keyframes deco-float {
+  0%   { transform: translateY(0)     rotate(calc(var(--r) - 3deg)) scaleX(var(--flip, 1)); }
+  50%  { transform: translateY(-14px) rotate(calc(var(--r) + 3deg)) scaleX(var(--flip, 1)); }
+  100% { transform: translateY(0)     rotate(calc(var(--r) - 3deg)) scaleX(var(--flip, 1)); }
+}
+
 .welcome-deco {
   position: absolute;
   pointer-events: none;
+  animation-name: deco-float;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
 }
 
-#deco-bag { left: 130px; top: 55px; width: 110px; transform: rotate(-8deg); }
-#deco-sunscreen-left { left: 560px; top: 20px; width: 95px; transform: rotate(18deg); }
-#deco-fish { left: 420px; top: 270px; width: 150px; transform: rotate(-6deg) scaleX(-1); }
-#deco-milkbox { left: 1055px; top: 215px; width: 120px; transform: rotate(10deg); }
-#deco-bottle { left: 1590px; top: 290px; width: 85px; transform: rotate(-10deg); }
-#deco-sunscreen-right { left: 1700px; top: 75px; width: 100px; transform: rotate(15deg); }
+#deco-bag { left: 130px; top: 55px; width: 110px; --r: -8deg; animation-duration: 4s; animation-delay: 0s; }
+#deco-sunscreen-left { left: 560px; top: 20px; width: 95px; --r: 18deg; animation-duration: 4.6s; animation-delay: 0.5s; }
+#deco-fish { left: 420px; top: 270px; width: 150px; --r: -6deg; --flip: -1; animation-duration: 3.8s; animation-delay: 1s; }
+#deco-milkbox { left: 1055px; top: 215px; width: 120px; --r: 10deg; animation-duration: 4.3s; animation-delay: 1.5s; }
+#deco-bottle { left: 1590px; top: 290px; width: 85px; --r: -10deg; animation-duration: 3.6s; animation-delay: 2s; }
+#deco-sunscreen-right { left: 1700px; top: 75px; width: 100px; --r: 15deg; animation-duration: 4.1s; animation-delay: 0.8s; }
 
 
 /* ======================================================

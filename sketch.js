@@ -1391,6 +1391,7 @@ function backToHome() {
   goodSpawnCount = 0;
   badSpawnCount = 0;
   nextSpawnAt = 0;
+  randomizeCorals(); // otherwise the next round starts with last round's dead/faded reef
   uiScreen = "welcome";
   document.getElementById("welcome-screen").hidden = false;
   document.getElementById("credits-screen").hidden = true;
