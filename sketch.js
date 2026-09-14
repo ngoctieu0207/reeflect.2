@@ -1428,7 +1428,6 @@ function initEndScreenFish() {
       bobAmp: random(6, 16),
       bobSpeed: random(0.4, 1),
       phase: random(TWO_PI),
-      nextTurnAt: millis() + random(3000, 7000),
       nextBubbleAt: millis() + random(300, 1500),
     });
   }
@@ -1466,12 +1465,6 @@ function updateAndDrawEndScreenFish() {
   const now = millis();
   const dt = deltaTime / 1000;
   endScreenFish.forEach((f) => {
-    // every few seconds it turns around and swims back the other way,
-    // instead of committing to one direction for its whole life
-    if (now > f.nextTurnAt) {
-      f.dir *= -1;
-      f.nextTurnAt = now + random(3000, 7000);
-    }
     f.x += f.dir * f.speed * dt;
     f.y = f.baseY + sin(now * 0.001 * f.bobSpeed + f.phase) * f.bobAmp;
 
