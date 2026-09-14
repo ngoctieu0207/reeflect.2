@@ -30,6 +30,7 @@ let coralMovementSound;
 let bubbleBreathSound;
 let bubbleEatingSound;
 let dieCoralSound;
+let clockSound;
 let clickSound;
 let soundOn = true; // the player's on/off preference — on by default, no opt-in needed
 let ambientStarted = false; // whether the ambient loops have actually been started yet
@@ -53,6 +54,7 @@ const BUBBLE_BREATH_VOLUME = 0.11; // plays on every bubble, loud enough to actu
 const BUBBLE_EATING_VOLUME = 0.75; // rarer event, should read clearly over the mix
 const DIE_CORAL_VOLUME = 1; // p5.sound's volume cap — see DIE_CORAL_GAIN_BOOST for more
 const DIE_CORAL_GAIN_BOOST = 2.1; // extra boost past the 1.0 cap, via a raw GainNode in setup()
+const CLOCK_VOLUME = 0.4; // plays once when 5s are left on the timer — kept fairly quiet
 const CLICK_VOLUME = 0.4;
 
 // re-applies the Music slider — called once in setup() and again any time
@@ -69,6 +71,7 @@ function applySfxVolumes() {
   bubbleBreathSound.setVolume(BUBBLE_BREATH_VOLUME * sfxVolume);
   bubbleEatingSound.setVolume(BUBBLE_EATING_VOLUME * sfxVolume);
   dieCoralSound.setVolume(DIE_CORAL_VOLUME * sfxVolume);
+  clockSound.setVolume(CLOCK_VOLUME * sfxVolume);
 }
 
 // same idea for the UI category (currently just the click sound)
@@ -331,6 +334,7 @@ function preload() {
   bubbleBreathSound = loadSound("assets/sounds/underwater-bubble-sound.wav");
   bubbleEatingSound = loadSound("assets/sounds/bubble-eating-sound.wav");
   dieCoralSound = loadSound("assets/sounds/coral-die-sound.wav");
+  clockSound = loadSound("assets/sounds/clock-sound.wav");
   clickSound = loadSound("assets/sounds/clicking-sound.wav");
 }
 
@@ -1132,6 +1136,12 @@ function draw() {
 
   if (gameStarted && !gamePaused) checkGameOutcome();
 
+  if (gameStarted && !gamePaused && !gameEnded && !clockWarningPlayed
+    && GAME_DURATION_MS - (millis() - gameStartTime) <= CLOCK_WARNING_MS) {
+    clockWarningPlayed = true;
+    if (soundOn) clockSound.play();
+  }
+
   const reefDead = coralPlan.length > 0 && coralPlan.every((c) => c.faded);
   if (reefDead && reefDeathTime === null) {
     reefDeathTime = millis(); // freeze seaweed's sway at this exact instant
@@ -1512,8 +1522,10 @@ function drawEndScreen(won) {
 
 const GAME_DURATION_MS = 30000;
 const SHIELD_WIN_THRESHOLD = 0.5;
+const CLOCK_WARNING_MS = 5000; // plays clockSound once the timer drops to this much time left
 
 let gameStartTime = null; // set once the player actually starts playing
+let clockWarningPlayed = false; // reset each round — see startGame()/restartGame()
 let gameStarted = false;
 let gameWon = false;
 let gameEnded = false; // true the instant the reef dies or the game is won
@@ -1536,6 +1548,7 @@ function startGame() {
   gameStarted = true;
   uiScreen = "playing";
   gameStartTime = millis();
+  clockWarningPlayed = false;
   document.getElementById("pause-toggle").hidden = false;
 }
 
@@ -1567,6 +1580,7 @@ function restartGame() {
   gameWon = false;
   endScreenTransitionStart = null;
   reefDeathTime = null;
+  clockWarningPlayed = false;
   shieldLevel = 0;
   shieldDisplayLevel = 0;
   debrisItems = [];
