@@ -30,7 +30,6 @@ let coralMovementSound;
 let bubbleBreathSound;
 let bubbleEatingSound;
 let dieCoralSound;
-let protectorSound;
 let clickSound;
 let soundOn = true; // the player's on/off preference — on by default, no opt-in needed
 let ambientStarted = false; // whether the ambient loops have actually been started yet
@@ -54,7 +53,6 @@ const BUBBLE_BREATH_VOLUME = 0.11; // plays on every bubble, loud enough to actu
 const BUBBLE_EATING_VOLUME = 0.75; // rarer event, should read clearly over the mix
 const DIE_CORAL_VOLUME = 1; // p5.sound's volume cap — see DIE_CORAL_GAIN_BOOST for more
 const DIE_CORAL_GAIN_BOOST = 2.1; // extra boost past the 1.0 cap, via a raw GainNode in setup()
-const PROTECTOR_VOLUME = 0.65; // plays every time the shield dome grows — satisfying, should read clearly
 const CLICK_VOLUME = 0.4;
 
 // re-applies the Music slider — called once in setup() and again any time
@@ -71,7 +69,6 @@ function applySfxVolumes() {
   bubbleBreathSound.setVolume(BUBBLE_BREATH_VOLUME * sfxVolume);
   bubbleEatingSound.setVolume(BUBBLE_EATING_VOLUME * sfxVolume);
   dieCoralSound.setVolume(DIE_CORAL_VOLUME * sfxVolume);
-  protectorSound.setVolume(PROTECTOR_VOLUME * sfxVolume);
 }
 
 // same idea for the UI category (currently just the click sound)
@@ -334,7 +331,6 @@ function preload() {
   bubbleBreathSound = loadSound("assets/sounds/underwater-bubble-sound.wav");
   bubbleEatingSound = loadSound("assets/sounds/bubble-eating-sound.wav");
   dieCoralSound = loadSound("assets/sounds/coral-die-sound.wav");
-  protectorSound = loadSound("assets/sounds/protector-sound.wav");
   clickSound = loadSound("assets/sounds/clicking-sound.wav");
 }
 
@@ -1050,7 +1046,6 @@ function setup() {
   bubbleBreathSound.playMode("sustain");
   bubbleEatingSound.playMode("sustain");
   dieCoralSound.playMode("sustain");
-  protectorSound.playMode("sustain");
   // p5.sound's setVolume() is clamped to [0, 1], so it can't make this any
   // louder on its own. To push it past that, route the sound through its
   // own raw Web Audio GainNode set above 1 — rewires the sound's output
@@ -1884,7 +1879,6 @@ const SHIELD_EASE_SPEED = 3; // how fast the dome eases to its new size — high
 
 function growShield() {
   shieldLevel = constrain(shieldLevel + SHIELD_GROW_STEP, 0, 1);
-  if (soundOn) protectorSound.play();
 }
 
 function shrinkShield() {
