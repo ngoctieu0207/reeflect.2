@@ -28,45 +28,34 @@ body {
   z-index: 100;
 
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 24px;
 
-  background: #0a1423;
+  background: linear-gradient(180deg, #065274, #086e9b);
 }
 
 #rotate-prompt[hidden] {
   display: none;
 }
 
+/* fixed-size container holding both the spinning phone outline and the
+   static text label — sized to the phone's own footprint (assets/images/
+   phone.svg is 115x206) so #rotate-text lands centered on top of it
+   without itself rotating */
 #rotate-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 70px;
-  height: 70px;
-  animation: rotate-icon-spin 1.6s ease-in-out infinite;
-}
-
-#rotate-phone {
   position: relative;
-  width: 38px;
-  height: 68px;
-  border: 3px solid #d6f4ea;
-  border-radius: 9px;
-  box-sizing: border-box;
+  width: 110px;
+  height: 197px;
 }
 
-#rotate-phone-notch {
+/* the actual exported icon — and only this — is what spins; the label text
+   stays upright (see #rotate-text) */
+#rotate-phone {
   position: absolute;
-  top: 7px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 12px;
-  height: 3px;
-  border-radius: 2px;
-  background: #d6f4ea;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  animation: rotate-icon-spin 1.6s ease-in-out infinite;
 }
 
 @keyframes rotate-icon-spin {
@@ -75,14 +64,26 @@ body {
   100% { transform: rotate(90deg); }
 }
 
+/* dead-centered on the phone's own rotation pivot (#rotate-phone rotates
+   around its own center, same point as this box's center) — a point sitting
+   exactly on a rotation's pivot never moves, so this stays put and upright
+   whether the icon is mid-spin, portrait, or landscape */
 #rotate-text {
-  margin: 0;
-  padding: 0 32px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 
-  font-family: "Alata", sans-serif;
-  font-size: 20px;
-  color: rgba(220, 235, 245, 0.9);
+  width: 78px;
+  margin: 0;
+
+  font-family: "apotek-wide", "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1.4;
+  color: #fff;
   text-align: center;
+  text-transform: uppercase;
 }
 
 
