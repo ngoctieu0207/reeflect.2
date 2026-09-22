@@ -203,11 +203,6 @@ canvas {
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-
-  /* the welcome/credits screens have no opaque backdrop of their own (the
-     live animated reef shows straight through), so the gradient text needs
-     its own shadow to stay legible against whatever's behind it */
-  filter: drop-shadow(0 4px 10px rgba(0, 10, 20, 0.45));
 }
 
 #welcome-buttons {
