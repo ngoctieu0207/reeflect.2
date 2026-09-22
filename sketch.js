@@ -783,10 +783,10 @@ function updateAndDrawDebris(frozen = false) {
           if (c.isGood) {
             growShield();
             if (soundOn) bubbleEatingSound.play();
-            maybeShowFactToast(GOOD_CATCH_FACTS);
+            maybeShowFactToast(GOOD_CATCH_FACTS, "good");
           } else {
             shrinkShield();
-            maybeShowFactToast(BAD_CATCH_FACTS);
+            maybeShowFactToast(BAD_CATCH_FACTS, "bad");
           }
           hitCoral = true;
           break;
@@ -1861,19 +1861,26 @@ const BAD_CATCH_FACTS = [
 ];
 
 const TOAST_COOLDOWN_MS = 7000; // minimum gap between two toasts
-const TOAST_DURATION_MS = 3000; // total time a toast stays on screen, fades included
-const TOAST_FADE_MS = 400;
+const TOAST_DURATION_MS = 5000; // total time a toast stays on screen, fades included
+const TOAST_FADE_MS = 300; // quick pop in/out so the hold time reads as long as possible
+
+// green for a good catch, warm red for a bad one — matches the good/bad
+// fish + trash color families used elsewhere
+const TOAST_COLOR_GOOD = [143, 236, 131];
+const TOAST_COLOR_BAD = [237, 132, 149];
 
 let toastMessage = null;
+let toastColor = TOAST_COLOR_GOOD;
 let toastShownAt = 0;
 let lastToastAt = -Infinity;
 
-function maybeShowFactToast(pool) {
+function maybeShowFactToast(pool, kind) {
   const now = millis();
   if (now - lastToastAt < TOAST_COOLDOWN_MS) return;
   lastToastAt = now;
   toastShownAt = now;
   toastMessage = random(pool);
+  toastColor = kind === "good" ? TOAST_COLOR_GOOD : TOAST_COLOR_BAD;
 }
 
 function drawFactToast() {
@@ -1887,19 +1894,31 @@ function drawFactToast() {
   let alpha = 1;
   if (elapsed < TOAST_FADE_MS) alpha = elapsed / TOAST_FADE_MS;
   else if (elapsed > TOAST_DURATION_MS - TOAST_FADE_MS) alpha = (TOAST_DURATION_MS - elapsed) / TOAST_FADE_MS;
+  // pops in slightly oversized then settles to full size, so it catches
+  // the eye on arrival instead of just quietly fading in in place
+  const popScale = elapsed < TOAST_FADE_MS ? 1.15 - 0.15 * (elapsed / TOAST_FADE_MS) : 1;
 
   push();
-  textFont("Alata");
-  textSize(22);
+  textFont("Inter");
+  textSize(26);
   textAlign(CENTER, CENTER);
-  const boxW = min(900, textWidth(toastMessage) + 80);
-  const boxH = 56;
+  const boxW = min(950, textWidth(toastMessage) + 100);
+  const boxH = 68;
   const x = width / 2 - boxW / 2;
   const y = 78;
 
+  translate(width / 2, y + boxH / 2);
+  scale(popScale);
+  translate(-width / 2, -(y + boxH / 2));
+
   noStroke();
-  fill(10, 20, 35, 190 * alpha);
-  rect(x, y, boxW, boxH, 28);
+  fill(10, 20, 35, 220 * alpha);
+  rect(x, y, boxW, boxH, 30);
+  stroke(toastColor[0], toastColor[1], toastColor[2], 255 * alpha);
+  strokeWeight(3);
+  noFill();
+  rect(x, y, boxW, boxH, 30);
+  noStroke();
   fill(255, 255, 255, 255 * alpha);
   text(toastMessage, width / 2, y + boxH / 2 + 1);
   pop();
