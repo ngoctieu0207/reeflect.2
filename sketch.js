@@ -783,10 +783,10 @@ function updateAndDrawDebris(frozen = false) {
           if (c.isGood) {
             growShield();
             if (soundOn) bubbleEatingSound.play();
-            maybeShowFactToast(GOOD_CATCH_FACTS, "good");
+            maybeShowFactToast(factForItem(c), "good");
           } else {
             shrinkShield();
-            maybeShowFactToast(BAD_CATCH_FACTS, "bad");
+            maybeShowFactToast(factForItem(c), "bad");
           }
           hitCoral = true;
           break;
@@ -1849,16 +1849,22 @@ function checkGameOutcome() {
 // catches don't spam the screen with one after another.
 // ======================================================
 
-const GOOD_CATCH_FACTS = [
-  "Reef-safe sunscreen helps coral avoid bleaching.",
-  "Reusing bags keeps plastic out of the ocean.",
-  "Small everyday choices add up to healthier reefs.",
+// one specific fact per item type (matched by its draw function), instead
+// of a random pool — so whatever you actually just caught is what the
+// toast talks about
+const ITEM_FACTS = [
+  { fns: [drawGoodReuseBag1, drawGoodReuseBag2, drawGoodReuseBag3], fact: "Reusing bags keeps plastic out of the ocean." },
+  { fns: [drawGoodFish1, drawGoodFish2, drawGoodFish3], fact: "A healthy reef supports countless fish and marine life." },
+  { fns: [drawGoodReefSunscreen1, drawGoodReefSunscreen2, drawGoodReefSunscreen3], fact: "Reef-safe sunscreen helps coral avoid bleaching." },
+  { fns: [drawTrashBottle1, drawTrashBottle2, drawTrashBottle3], fact: "Plastic bottles can take centuries to break down in the ocean." },
+  { fns: [drawTrashMilkBox1, drawTrashMilkBox2, drawTrashMilkBox3], fact: "Food and drink cartons add to the plastic choking our reefs." },
+  { fns: [drawTrashSunscreen1, drawTrashSunscreen2, drawTrashSunscreen3], fact: "Chemical sunscreen is a leading cause of coral bleaching." },
 ];
-const BAD_CATCH_FACTS = [
-  "Chemical sunscreen is a leading cause of coral bleaching.",
-  "Plastic waste smothers coral and blocks sunlight.",
-  "Ocean trash can take centuries to break down.",
-];
+
+function factForItem(debrisItem) {
+  const entry = ITEM_FACTS.find((e) => e.fns.includes(debrisItem.fn));
+  return entry ? entry.fact : null;
+}
 
 const TOAST_COOLDOWN_MS = 7000; // minimum gap between two toasts
 const TOAST_DURATION_MS = 5000; // total time a toast stays on screen, fades included
@@ -1874,12 +1880,13 @@ let toastColor = TOAST_COLOR_GOOD;
 let toastShownAt = 0;
 let lastToastAt = -Infinity;
 
-function maybeShowFactToast(pool, kind) {
+function maybeShowFactToast(fact, kind) {
+  if (!fact) return;
   const now = millis();
   if (now - lastToastAt < TOAST_COOLDOWN_MS) return;
   lastToastAt = now;
   toastShownAt = now;
-  toastMessage = random(pool);
+  toastMessage = fact;
   toastColor = kind === "good" ? TOAST_COLOR_GOOD : TOAST_COLOR_BAD;
 }
 
