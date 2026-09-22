@@ -57,6 +57,12 @@ const PROTECTOR_GAIN_BOOST = 1.2; // extra boost via a raw GainNode in setup() �
 const CLOCK_VOLUME = 1; // plays once when 5s are left on the timer
 const CLICK_VOLUME = 1; // plays on every UI click
 
+// every per-sound volume above is already maxed at 1 — on a weaker external
+// speaker (e.g. a classroom projector) that can still read as quiet. This
+// pushes the ENTIRE mix louder as one final stage, after everything else is
+// already mixed together — see the master GainNode wired up in setup().
+const MASTER_GAIN_BOOST = 1.6;
+
 // re-applies the Music slider — called once in setup() and again any time
 // the Music slider moves
 function applyMusicVolume() {
@@ -1051,18 +1057,30 @@ function setup() {
   bubbleBreathSound.playMode("sustain");
   bubbleEatingSound.playMode("sustain");
   protectorSound.playMode("sustain");
+
+  const audioCtx = getAudioContext();
+
+  // MASTER OUTPUT BOOST — reroutes p5's own master bus (everything except
+  // protectorSound below, which gets its own separate boost) through one
+  // extra GainNode set above 1 before it reaches the speakers.
+  const masterBoostGain = audioCtx.createGain();
+  masterBoostGain.gain.value = MASTER_GAIN_BOOST;
+  p5.soundOut.output.disconnect();
+  p5.soundOut.output.connect(masterBoostGain);
+  masterBoostGain.connect(audioCtx.destination);
+
   // p5.sound's setVolume() is clamped to [0, 1], so it can't make this any
   // louder on its own. To push it past that, route the sound through its
   // own raw Web Audio GainNode set above 1 — rewires the sound's output
-  // from p5's master bus through this extra amplifier stage, then back into
-  // the master bus, so only this one sound gets the boost.
+  // from p5's master bus through this extra amplifier stage, then into the
+  // same master boost stage above, so only this one sound gets the extra
+  // PROTECTOR_GAIN_BOOST on top of everyone else's MASTER_GAIN_BOOST.
   {
-    const ctx = getAudioContext();
-    const boostGain = ctx.createGain();
+    const boostGain = audioCtx.createGain();
     boostGain.gain.value = PROTECTOR_GAIN_BOOST;
     protectorSound.disconnect();
     protectorSound.panner.connect(boostGain);
-    boostGain.connect(ctx.destination);
+    boostGain.connect(masterBoostGain);
   }
 
   applyMusicVolume();
