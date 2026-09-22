@@ -783,8 +783,10 @@ function updateAndDrawDebris(frozen = false) {
           if (c.isGood) {
             growShield();
             if (soundOn) bubbleEatingSound.play();
+            maybeShowFactToast(GOOD_CATCH_FACTS);
           } else {
             shrinkShield();
+            maybeShowFactToast(BAD_CATCH_FACTS);
           }
           hitCoral = true;
           break;
@@ -1230,7 +1232,10 @@ function draw() {
   drawRock4(...LAYOUT.rock4);
   drawRock5(...LAYOUT.rock5);
 
-  if (gameStarted && !gameOver) drawTimeBar();
+  if (gameStarted && !gameOver) {
+    drawTimeBar();
+    drawFactToast();
+  }
 
   if (reefDead) {
     // desaturate the whole rendered scene for a "game over" look, then
@@ -1548,6 +1553,8 @@ function startGame() {
   uiScreen = "playing";
   gameStartTime = millis();
   clockWarningPlayed = false;
+  toastMessage = null;
+  lastToastAt = -Infinity;
   document.getElementById("pause-toggle").hidden = false;
 }
 
@@ -1580,6 +1587,8 @@ function restartGame() {
   endScreenTransitionStart = null;
   reefDeathTime = null;
   clockWarningPlayed = false;
+  toastMessage = null;
+  lastToastAt = -Infinity;
   shieldLevel = 0;
   shieldDisplayLevel = 0;
   debrisItems = [];
@@ -1830,6 +1839,70 @@ function checkGameOutcome() {
       c.deathTime = millis();
     });
   }
+}
+
+// ======================================================
+// FACT TOAST — a short real-world reef-conservation message that pops up
+// over the game briefly on a catch, then fades away on its own. Meant to
+// slip the actual message in without stopping play for it (see the credits
+// screen for the fuller version). Throttled by TOAST_COOLDOWN_MS so rapid
+// catches don't spam the screen with one after another.
+// ======================================================
+
+const GOOD_CATCH_FACTS = [
+  "Reef-safe sunscreen helps coral avoid bleaching.",
+  "Reusing bags keeps plastic out of the ocean.",
+  "Small everyday choices add up to healthier reefs.",
+];
+const BAD_CATCH_FACTS = [
+  "Chemical sunscreen is a leading cause of coral bleaching.",
+  "Plastic waste smothers coral and blocks sunlight.",
+  "Ocean trash can take centuries to break down.",
+];
+
+const TOAST_COOLDOWN_MS = 7000; // minimum gap between two toasts
+const TOAST_DURATION_MS = 3000; // total time a toast stays on screen, fades included
+const TOAST_FADE_MS = 400;
+
+let toastMessage = null;
+let toastShownAt = 0;
+let lastToastAt = -Infinity;
+
+function maybeShowFactToast(pool) {
+  const now = millis();
+  if (now - lastToastAt < TOAST_COOLDOWN_MS) return;
+  lastToastAt = now;
+  toastShownAt = now;
+  toastMessage = random(pool);
+}
+
+function drawFactToast() {
+  if (!toastMessage) return;
+  const elapsed = millis() - toastShownAt;
+  if (elapsed > TOAST_DURATION_MS) {
+    toastMessage = null;
+    return;
+  }
+
+  let alpha = 1;
+  if (elapsed < TOAST_FADE_MS) alpha = elapsed / TOAST_FADE_MS;
+  else if (elapsed > TOAST_DURATION_MS - TOAST_FADE_MS) alpha = (TOAST_DURATION_MS - elapsed) / TOAST_FADE_MS;
+
+  push();
+  textFont("Alata");
+  textSize(22);
+  textAlign(CENTER, CENTER);
+  const boxW = min(900, textWidth(toastMessage) + 80);
+  const boxH = 56;
+  const x = width / 2 - boxW / 2;
+  const y = 78;
+
+  noStroke();
+  fill(10, 20, 35, 190 * alpha);
+  rect(x, y, boxW, boxH, 28);
+  fill(255, 255, 255, 255 * alpha);
+  text(toastMessage, width / 2, y + boxH / 2 + 1);
+  pop();
 }
 
 // a countdown bar across the top of the screen, draining as GAME_DURATION_MS
