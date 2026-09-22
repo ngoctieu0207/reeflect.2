@@ -40,22 +40,22 @@ let soundPanelOpen = false;
 // that sound's own base volume constant below — Music covers the background
 // loop, SFX covers every other ambient/one-shot effect, UI covers the click
 // sound (and whatever other UI sounds get added later)
-let musicVolume = 0.5;
-let sfxVolume = 0.5;
-let uiVolume = 0.5;
+let musicVolume = 1;
+let sfxVolume = 1;
+let uiVolume = 1;
 
-const MUSIC_VOLUME = 0.35; // background loop — present but under the SFX
-const UNDERWATER_VOLUME = 0.28; // background bed — present but not the loudest thing
-const CORAL_MOVEMENT_VOLUME = 0.09; // coral "rustle"/sway — kept light
+const MUSIC_VOLUME = 1; // background loop
+const UNDERWATER_VOLUME = 1; // background bed
+const CORAL_MOVEMENT_VOLUME = 1; // coral "rustle"/sway
 const CORAL_MOVEMENT_BASE_RATE = 0.75; // resting playback speed
 const CORAL_MOVEMENT_RATE_VARIANCE = 0.15; // how far the pulse drifts from the base rate
 const SEAWEED_SWAY_REFERENCE_SPEED = 1.35; // pulse cycle speed, matched to seaweed sway
-const BUBBLE_BREATH_VOLUME = 0.11; // plays on every bubble, loud enough to actually hear
-const BUBBLE_EATING_VOLUME = 0.75; // rarer event, should read clearly over the mix
-const PROTECTOR_VOLUME = 0.45; // fires on every good hit, so kept well below the old rare-event level
-const PROTECTOR_GAIN_BOOST = 1.2; // mild boost via a raw GainNode in setup() — see PROTECTOR_VOLUME
-const CLOCK_VOLUME = 0.4; // plays once when 5s are left on the timer — kept fairly quiet
-const CLICK_VOLUME = 0.4;
+const BUBBLE_BREATH_VOLUME = 1; // plays on every bubble
+const BUBBLE_EATING_VOLUME = 1; // plays when a bubble swallows debris
+const PROTECTOR_VOLUME = 1; // plays on every good hit that grows the shield
+const PROTECTOR_GAIN_BOOST = 1.2; // extra boost via a raw GainNode in setup() — see PROTECTOR_VOLUME
+const CLOCK_VOLUME = 1; // plays once when 5s are left on the timer
+const CLICK_VOLUME = 1; // plays on every UI click
 
 // re-applies the Music slider — called once in setup() and again any time
 // the Music slider moves
