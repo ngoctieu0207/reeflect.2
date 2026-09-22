@@ -61,7 +61,7 @@ const CLICK_VOLUME = 1; // plays on every UI click
 // speaker (e.g. a classroom projector) that can still read as quiet. This
 // pushes the ENTIRE mix louder as one final stage, after everything else is
 // already mixed together — see the master GainNode wired up in setup().
-const MASTER_GAIN_BOOST = 1.6;
+const MASTER_GAIN_BOOST = 1.3; // kept modest — much higher and loud moments start clipping
 
 // re-applies the Music slider — called once in setup() and again any time
 // the Music slider moves
@@ -1863,20 +1863,21 @@ function checkGameOutcome() {
 // FACT TOAST — a short real-world reef-conservation message that pops up
 // over the game briefly on a catch, then fades away on its own. Meant to
 // slip the actual message in without stopping play for it (see the credits
-// screen for the fuller version). Throttled by TOAST_COOLDOWN_MS so rapid
-// catches don't spam the screen with one after another.
+// screen for the fuller version). Kept short and quick so a new catch can
+// immediately replace whatever's currently showing — items keep falling
+// steadily, so the toast needs to keep pace instead of hogging the screen.
 // ======================================================
 
 // one specific fact per item type (matched by its draw function), instead
 // of a random pool — so whatever you actually just caught is what the
-// toast talks about
+// toast talks about. Kept short — this needs to be read at a glance.
 const ITEM_FACTS = [
-  { fns: [drawGoodReuseBag1, drawGoodReuseBag2, drawGoodReuseBag3], fact: "Cutting plastic waste helps reefs withstand a warming climate." },
-  { fns: [drawGoodFish1, drawGoodFish2, drawGoodFish3], fact: "Leaving fish alone keeps the whole reef ecosystem balanced." },
-  { fns: [drawGoodReefSunscreen1, drawGoodReefSunscreen2, drawGoodReefSunscreen3], fact: "Reef-safe sunscreen helps coral avoid bleaching." },
-  { fns: [drawTrashBottle1, drawTrashBottle2, drawTrashBottle3], fact: "Plastic bottles can take centuries to break down in the ocean." },
-  { fns: [drawTrashMilkBox1, drawTrashMilkBox2, drawTrashMilkBox3], fact: "Food and drink cartons add to the plastic choking our reefs." },
-  { fns: [drawTrashSunscreen1, drawTrashSunscreen2, drawTrashSunscreen3], fact: "Chemical sunscreen is a leading cause of coral bleaching." },
+  { fns: [drawGoodReuseBag1, drawGoodReuseBag2, drawGoodReuseBag3], fact: "Less plastic helps reefs survive climate change." },
+  { fns: [drawGoodFish1, drawGoodFish2, drawGoodFish3], fact: "Leaving fish alone keeps reefs balanced." },
+  { fns: [drawGoodReefSunscreen1, drawGoodReefSunscreen2, drawGoodReefSunscreen3], fact: "Reef-safe sunscreen prevents bleaching." },
+  { fns: [drawTrashBottle1, drawTrashBottle2, drawTrashBottle3], fact: "Plastic bottles take centuries to break down." },
+  { fns: [drawTrashMilkBox1, drawTrashMilkBox2, drawTrashMilkBox3], fact: "Cartons add to the plastic choking reefs." },
+  { fns: [drawTrashSunscreen1, drawTrashSunscreen2, drawTrashSunscreen3], fact: "Chemical sunscreen causes coral bleaching." },
 ];
 
 function factForItem(debrisItem) {
@@ -1884,9 +1885,9 @@ function factForItem(debrisItem) {
   return entry ? entry.fact : null;
 }
 
-const TOAST_COOLDOWN_MS = 7000; // minimum gap between two toasts
-const TOAST_DURATION_MS = 5000; // total time a toast stays on screen, fades included
-const TOAST_FADE_MS = 300; // quick pop in/out so the hold time reads as long as possible
+const TOAST_COOLDOWN_MS = 350; // just enough to dodge a same-frame double-trigger
+const TOAST_DURATION_MS = 2200; // total time a toast stays on screen, fades included
+const TOAST_FADE_MS = 250; // quick pop in/out so the hold time reads as long as possible
 
 // green for a good catch, warm red for a bad one — matches the good/bad
 // fish + trash color families used elsewhere
