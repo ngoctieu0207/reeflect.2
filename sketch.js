@@ -1853,8 +1853,8 @@ function checkGameOutcome() {
 // of a random pool — so whatever you actually just caught is what the
 // toast talks about
 const ITEM_FACTS = [
-  { fns: [drawGoodReuseBag1, drawGoodReuseBag2, drawGoodReuseBag3], fact: "Reusing bags keeps plastic out of the ocean." },
-  { fns: [drawGoodFish1, drawGoodFish2, drawGoodFish3], fact: "A healthy reef supports countless fish and marine life." },
+  { fns: [drawGoodReuseBag1, drawGoodReuseBag2, drawGoodReuseBag3], fact: "Cutting plastic waste helps reefs withstand a warming climate." },
+  { fns: [drawGoodFish1, drawGoodFish2, drawGoodFish3], fact: "Leaving fish alone keeps the whole reef ecosystem balanced." },
   { fns: [drawGoodReefSunscreen1, drawGoodReefSunscreen2, drawGoodReefSunscreen3], fact: "Reef-safe sunscreen helps coral avoid bleaching." },
   { fns: [drawTrashBottle1, drawTrashBottle2, drawTrashBottle3], fact: "Plastic bottles can take centuries to break down in the ocean." },
   { fns: [drawTrashMilkBox1, drawTrashMilkBox2, drawTrashMilkBox3], fact: "Food and drink cartons add to the plastic choking our reefs." },
